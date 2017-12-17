@@ -10,6 +10,15 @@
 
     <!--Description-->
     
+        <meta name="description" content="WKWebView是苹果在iOS8新加入的Html解析控件，相比它的前辈UIWebView，自然具有着非常多优点：
+
+
+更多的支持HTML5的特性
+
+官方宣称的高达60fps的滚动刷新率以及内置手势
+
+将UIWebViewDelegate与UIWebView拆分成了14类与3个协议,以前很多不便实现">
+    
 
     <!--Author-->
     
@@ -18,7 +27,7 @@
 
     <!--Open Graph Title-->
     
-        <meta property="og:title" content="Kitchen and Soup"/>
+        <meta property="og:title" content="解决WKWebView中ajax请求时cookie存取的小技巧"/>
     
 
     <!--Open Graph Description-->
@@ -29,7 +38,7 @@
 
     <!--Type page-->
     
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="article" />
     
 
     <!--Page Cover-->
@@ -40,7 +49,7 @@
 
     <!-- Title -->
     
-    <title>Archiv: 2017 - Kitchen and Soup</title>
+    <title>解决WKWebView中ajax请求时cookie存取的小技巧 - Kitchen and Soup</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
@@ -142,62 +151,86 @@
 </nav>
 
     <!-- Main Content -->
-    
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
 
-<!-- Page Header -->
-<!-- Set your background image for this header in the theme's configuration: index_cover -->
 <header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                <div class="site-heading">
-                    <h1>2017</h1>
+                <div class="post-heading">
+                    <h1>解决WKWebView中ajax请求时cookie存取的小技巧</h1>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2017-12-17
+                        
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 </header>
 
-<!-- Main Content -->
-<div class="container">
-    <div class="row">
-        <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+
+            <!-- Gallery -->
             
-                <div class="post-preview">
-    <a href="/2017/12/17/ios_wkwevview_cookie_saved/">
-        <h1 class="post-title archive">
-            解决WKWebView中ajax请求时cookie存取的小技巧
-        </h1>
-    </a>
-    <p class="post-meta archive">
-        <!-- Date and Author -->
-        
-        2017-12-17
-    </p>
-</div>
-            
-                <div class="post-preview">
-    <a href="/2017/11/20/hello-world/">
-        <h1 class="post-title archive">
-            Hello World
-        </h1>
-    </a>
-    <p class="post-meta archive">
-        <!-- Date and Author -->
-        
-        2017-11-20
-    </p>
-</div>
-            
-            <div class="archive-before-pagination"></div>
-            <ul class="pager">
-    
-    
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>WKWebView是苹果在iOS8新加入的Html解析控件，相比它的前辈UIWebView，自然具有着非常多优点：</p>
+<blockquote>
+<ul>
+<li><p>更多的支持HTML5的特性</p>
+</li>
+<li><p>官方宣称的高达60fps的滚动刷新率以及内置手势</p>
+</li>
+<li><p>将UIWebViewDelegate与UIWebView拆分成了14类与3个协议,以前很多不便实现的功能得以实现。</p>
+</li>
+<li><p>Safari相同的JavaScript引擎</p>
+</li>
+<li><p>占用更少的内存</p>
+</li>
 </ul>
+</blockquote>
+<p>但同时，其谜一般的cookie存取机制也一直是各位开发者心中的刺。其脱离了NSHTTPCookieStorage和NSHttpCookie的管理，无法手动控制request header,甚至<a href="https://forums.developer.apple.com/thread/16847" target="_blank" rel="noopener">苹果的开发人员自己也搞不清楚…</a>。</p>
+<hr>
+<p>在上个月的开发工作中，我就踩到了这个大坑，在网上也找不到相关的解决方法，花了很多时间，终于找到了一个相对让人满意又tricky的手段。</p>
+<p>场景：<br>一基于H5开发的套壳app,在首页通过ajax访问登陆后，服务器分配一个session与对应的cookie用于作为登陆凭证。</p>
+<p>问题:<br>在ajax登陆成功后，出现了跳转页面时无法将拿到的cookie带过去的bug。由于应用为纯h5编写，<a href="https://stackoverflow.com/questions/26573137/can-i-set-the-cookies-to-be-used-by-a-wkwebview" target="_blank" rel="noopener">网络上流传的原生应用打开WkWebView时候将之前拿到的cookie带过去的方法</a>亦无法使用。</p>
+<p>分析:<br>在多次调试后，发现此bug出现的条件是，应用从未进入过后台。当应用进入过后台，又重新切换回来时，cookie又神奇地出现了。推测是当应用安装后，某些文件未初始化完成，故无法保存cookie。</p>
+<p>于是跟随着这个思路，对比应用沙盒在进入后台又重新激活前后的变化，发现在Directory目录中，出现了Cookies.binarycookies这个文件。且在登陆操作前，此文件为空。登陆后，出现了cookie本身。</p>
+<p>在<a href="http://www.h4ck.org.cn/2013/08/【翻译】safariios-cookies-binarycookies-reader/" target="_blank" rel="noopener">查阅资料</a>后发现，Cookies.binarycookies是Safari 浏览器和iOS应用程序的保存其cookie的文件。于是猜想，直接操作这个文件，就等于操作wkwebview的cookie本身。</p>
+<p>解决：<br>在启动应用时，查询/Library/Cookie/目录下是否存在Cookies.binarycookies文件，若无，则手动创建之，代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (void)initCookie&#123;</span><br><span class="line">    NSString *pathDocuments = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES)objectAtIndex:0];</span><br><span class="line">    NSString *cookieDirPath = [pathDocuments stringByAppendingPathComponent:@&quot;/Cookies&quot;];</span><br><span class="line">    </span><br><span class="line">    NSString *cookieFilePath = [cookieDirPath stringByAppendingString:@&quot;/Cookies.binarycookies&quot;];</span><br><span class="line">    </span><br><span class="line">    NSError *e;</span><br><span class="line">    if (![[NSFileManager defaultManager] fileExistsAtPath:cookieFilePath]) &#123;</span><br><span class="line">        </span><br><span class="line">        [[NSFileManager defaultManager] createDirectoryAtPath:cookieDirPath withIntermediateDirectories:YES attributes:nil error:nil];</span><br><span class="line">        </span><br><span class="line">        [[NSFileManager defaultManager] copyItemAtPath:[[NSBundle mainBundle] pathForResource:@&quot;Cookies&quot; ofType:@&quot;.binarycookies&quot;] toPath:cookieFilePath error:&amp;e];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了保险起见，还在对应的js逻辑中，手动注入了cookie：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">document.cookie=&quot;你的cookie字符串&quot;</span><br></pre></td></tr></table></figure></p>
+<hr>
+<p>至此，问题完美解决，从此再也没有出现过cookie失效的问题。</p>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
         </div>
     </div>
-</div>
-
+</article>
 
     <!-- Footer -->
     <hr />
